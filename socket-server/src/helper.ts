@@ -1,4 +1,10 @@
-import { GameBoard } from "./models/game-board";
+import { GameBoard } from "./game-board.model";
+
+export let players: any[] = [];
+
+export function isPlayer(playerId: string, role: string) {
+  return players.some(p => p.playerId === playerId &&  p.role === role);
+}
 
 export function calculateWinner(squares: string[]): string | null {
     // Represent the 3 rows, 3 columns, and 2 diagonals.
@@ -29,6 +35,6 @@ export function getGameState(): GameBoard {
         board: Array(9).fill(null),
         winner: null,
         gameOver: false,  
-        xIsNext: true               
+        xIsNext: true           
     };
-}
+} 

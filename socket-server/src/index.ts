@@ -2,7 +2,8 @@ import express, { Request, Response } from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import { calculateWinner, getGameState } from './helper';
+import { calculateWinner, getGameState, players, isPlayer } from './helper';
+import { Role } from './role.constants';
 
 const app = express();
 const PORT = 3000;
@@ -28,22 +29,42 @@ let gameState = getGameState();
 io.on('connection', (socket) => {
   console.log('A user connected: ' + socket.id);
 
-  socket.emit('gameState', gameState);
+  socket.on('start', (playerId) => {
+    const numberOfPlayers = players.length;
 
-  socket.on('makeMove', (index) => {
-    if (gameState.board[index] || gameState.winner) return; 
+    if (players.some(p => p.playerId === playerId)) return;
+
+    if (numberOfPlayers < 2)
+    {
+      const role = numberOfPlayers === 0 ? Role.X : numberOfPlayers === 1 ? Role.O : Role.Spectator;
+      players.push({ playerId, role});
+    }    
+
+    io.emit('gameState', gameState, players, numberOfPlayers);
+  });
+
+  socket.on('makeMove', (index, playerId) => {
+
+    if (gameState.winner ||
+      gameState.board[index] ||
+      players.every(p => p.playerId !== playerId) ||
+      (isPlayer(playerId, Role.X) && !gameState.xIsNext) ||
+      (isPlayer(playerId, Role.O) && gameState.xIsNext))
+    {
+      return;
+    }
    
-    gameState.board[index] = gameState.xIsNext ? 'X' : 'O';
+    gameState.board[index] = gameState.xIsNext ? Role.X : Role.O;
     gameState.winner = calculateWinner(gameState.board);
     gameState.gameOver = gameState.winner != null;
     gameState.xIsNext = !gameState.xIsNext;
 
-    io.emit('gameState', gameState);
+    io.emit('gameState', gameState, players);
   });
 
   socket.on('restart', () => {
     gameState = getGameState();
-    io.emit('gameState', gameState, true);
+    io.emit('gameState', gameState, players);
   });
 
   socket.on('disconnect', () => {
