@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
    
     gameState.board[index] = gameState.xIsNext ? Role.X : Role.O;
     gameState.winner = calculateWinner(gameState.board);
-    gameState.gameOver = gameState.winner != null;
+    gameState.gameOver = gameState.winner != null || gameState.board.every(b => b !== null);
     gameState.xIsNext = !gameState.xIsNext;
 
     io.emit('gameState', gameState, players);
