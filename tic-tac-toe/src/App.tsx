@@ -63,7 +63,7 @@ function App() {
   const isPlayer = players.some(p => p.playerId === playerIdRef.current);
   const role = players.find(p => p.playerId === playerIdRef.current)?.role ?? Role.Spectator;
   const showPlayerSelection = players.length < 2 && !playerSelected;
-  
+
   return (
     <div className="h-screen bg-gradient-to-b from-sky-300 to-white">
       { showPlayerSelection && <PlayerSelection players={players} onSelect={handlePlayerSelect}/> }
@@ -80,7 +80,7 @@ function App() {
       }   
       
       { !showPlayerSelection && !gameOver &&
-        <InfoBoard showRestart={isPlayer && board.some(b => b != null)} xIsNext={xIsNext} role={role} onClick={handleRestart}/>}
+        <InfoBoard isPlayer={isPlayer} xIsNext={xIsNext} role={role} onClick={handleRestart}/>}
 
       {  !showPlayerSelection && gameOver && <GameOver winner={winner} onClick={handleRestart} isPlayer={isPlayer}/> }        
     </div>
