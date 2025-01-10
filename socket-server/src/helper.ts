@@ -6,6 +6,10 @@ export function isPlayer(playerId: string, role: string) {
   return players.some(p => p.playerId === playerId &&  p.role === role);
 }
 
+export function resetPlayers(){
+  players = [];
+}
+
 export function calculateWinner(squares: string[]): string | null {
     // Represent the 3 rows, 3 columns, and 2 diagonals.
     const rows = [squares.slice(0, 3), squares.slice(3, 6), squares.slice(6, 9)];

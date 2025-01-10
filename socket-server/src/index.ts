@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import { calculateWinner, getGameState, players, isPlayer } from './helper';
+import { calculateWinner, getGameState, players, isPlayer, resetPlayers } from './helper';
 import { Role } from './role.constants';
 
 const app = express();
@@ -29,18 +29,19 @@ let gameState = getGameState();
 io.on('connection', (socket) => {
   console.log('A user connected: ' + socket.id);
 
-  socket.on('start', (playerId) => {
+  io.emit('gameState', gameState, players);
+
+  socket.on('updatePlayers', (playerId, role) => {
+    if (players.some(p => p.playerId === playerId)) return;
+    
     const numberOfPlayers = players.length;
 
-    if (players.some(p => p.playerId === playerId)) return;
-
-    if (numberOfPlayers < 2)
+    if (numberOfPlayers < 2 && role !== Role.Spectator)
     {
-      const role = numberOfPlayers === 0 ? Role.X : numberOfPlayers === 1 ? Role.O : Role.Spectator;
       players.push({ playerId, role});
     }    
 
-    io.emit('gameState', gameState, players, numberOfPlayers);
+    io.emit('gameState', gameState, players);
   });
 
   socket.on('makeMove', (index, playerId) => {
@@ -64,7 +65,8 @@ io.on('connection', (socket) => {
 
   socket.on('restart', () => {
     gameState = getGameState();
-    io.emit('gameState', gameState, players);
+    resetPlayers();
+    io.emit('gameState', gameState, players, true);
   });
 
   socket.on('disconnect', () => {
